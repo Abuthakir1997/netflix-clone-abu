@@ -1,13 +1,45 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
+import React, { useEffect } from 'react';
 import './App.css';
-
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { HomeScreen } from './Pages/HomeScreen/HomeScreen';
+import Banner from './components/Banner';
+import Login from './Pages/Login/Login';
+import Profile from './Pages/ProfileScreen/ProfileScreen';
+import ProfileScreen from './Pages/ProfileScreen/ProfileScreen';
+import { useDispatch, useSelector } from 'react-redux';
+import { login, logout, selectUser } from './features/userSlice';
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase";
 function App() {
+  const user = useSelector(selectUser);
+  console.log(user);
+  const dispatch = useDispatch();
+  console.log(user);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (userAuth) => {
+      if (userAuth) {
+        dispatch(login({
+          uid: userAuth.uid,
+          email: userAuth.email,
+        }))
+      }
+      else {
+        dispatch(logout());
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  // const user = {
+  //   name: "jack",
+  //   email: "jack@gmail.com",
+  //   pass: "ldsf"
+  // }
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+      {/* <header className="App-header">
         <Counter />
         <p>
           Edit <code>src/App.js</code> and save to reload.
@@ -50,7 +82,18 @@ function App() {
             React Redux
           </a>
         </span>
-      </header>
+      </header> */}
+      <Router>
+        {!user ? <Login /> : (
+          <Routes>
+            <Route path="/profile" element={<ProfileScreen />} />
+            <Route path="/" element={<HomeScreen />} />
+          </Routes>
+        )}
+
+      </Router>
+      {/* <HomeScreen /> */}
+      {/* <Banner></Banner> */}
     </div>
   );
 }
